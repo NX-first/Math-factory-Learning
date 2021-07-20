@@ -1,0 +1,83 @@
+Way 1
+a1=imread('000.bmp');
+[m,n]=size(a1);
+dirname = 'ImageChips';
+files = dir(fullfile(dirname, '*.bmp'));
+a=zeros(m,n,19);
+pic=[];
+for ii = 1:length(files)
+  filename = fullfile(dirname, files(ii).name);
+  a(:,:,ii)=imread(filename);
+end
+std1=zeros(1,19);
+b=a/255;
+for i=1:19
+    std1(i)=std(b(:,1,i));
+end
+r1=find(std1==min(std1));
+pic=[pic,a(:,:,r1)];
+r=zeros(1,19);
+for i=1:18
+    x=b(:,72,r1);
+    for j=2:19
+        y=b(:,1,j);
+        r(j)=diag(corrcoef(x,y),-1);
+    end
+    r2=find(r==max(r));
+    pic=[pic,a(:,:,r2)];
+    r1=r2;
+end
+double(pic);
+figure
+imshow(pic,[])
+
+Way 2
+a1=imread('000.bmp');
+[m,n]=size(a1);
+imshow(a1)
+dirname = 'ImageChips';
+files = dir(fullfile(dirname, '*.bmp'));
+a=zeros(m,n,19);
+pic=[];
+for ii = 1:length(files)
+  filename = fullfile(dirname, files(ii).name);
+  a(:,:,ii)=imread(filename);
+  pic=[pic,a(:,:,ii)];
+end
+%double(pic);
+figure
+imshow(pic,[])
+a=double(a);
+b=a/255;
+x=b(:,72,4);
+y=b(:,1,7);
+rr=corrcoef(x,y);%或利用库函数来求样本相关系数
+r=rr(2)
+for i=1:19
+    x=b(:,1,i);
+    var(x),i
+end
+for i=1:19
+    x=b(:,72,i);
+    var(x),i
+end
+for i=1:19
+  x=b(:,72,1);
+  y=b(:,1,i);
+  rr=corrcoef(x,y);
+  r=rr(2),i
+end
+$不停寻找corrcoef匹配度最高的
+dirname = 'ImageChips';
+files = dir(fullfile(dirname, '*.bmp'));
+a=zeros(m,n,19);
+pic=[];
+for ii = 1:length(files)
+  filename = fullfile(dirname, files(ii).name);
+  a(:,:,ii)=imread(filename);
+  pic=[pic,a(:,:,ii)];
+end
+oo=[a(:,:,9),a(:,:,15),a(:,:,13),a(:,:,16),a(:,:,4),a(:,:,11),a(:,:,3),a(:,:,17),a(:,:,2),a(:,:,5),a(:,:,6),a(:,:,10),a(:,:,14),a(:,:,19),a(:,:,12),a(:,:,8),a(:,:,18),a(:,:,1),a(:,:,7)];
+pic=[oo];
+figure
+imshow(pic,[])
