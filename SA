@@ -1,0 +1,98 @@
+function [alpha_best, beta_best, gamma_best, F0_best, FF_best, tt_best]=find_opt(F00, FF0, tt0, Tk, T0, Lf, alpha)
+alpha_final=asin(sin(0.5*pi/180)*cos(12*pi/180))*180/pi;
+beta_final=asin(sin(0.5*pi/180)*sin(12*pi/180))*180/pi;
+gamma_final=asin(sqrt(sin(beta_final*pi/180)^2+sin (alpha_final*pi/180)^2))*180/pi;
+if nargin==3
+    Tk=1000;
+    T0=1;
+    Lf=2000;
+    alpha=0.5;
+end
+F0_current=F00;
+FF_current=FF0;
+tt_current=tt0;
+F0_best=F00;
+FF_best=FF0;
+tt_best=tt0;
+pur_current=optfun([F00 FF0 tt0]);
+pur_best=optfun([F00 FF0 tt0]);
+result=[];
+while Tk>T0
+    for i=1:Lf
+        F0=disturbF0(F0_current);
+        FF=disturbF0(FF_current);
+        tt=disturbF0(tt_current);
+        fprintf('已执行第%d次扰动\n',i);
+        X=[F0 FF tt];
+        pur=optfun(X);
+        if pur<pur_current
+            pur_current=pur;
+            F0_current=F0;
+            FF_current=FF;
+            tt_current=tt;
+            if pur<pur_best
+                pur_best=pur;
+                F0_best=F0;
+                FF_best=FF;
+                tt_best=tt;
+            end
+        else
+            if rand(1,1)<exp((pur_current-pur)/Tk)
+                pur_current=pur;
+                F0_current=F0;
+                FF_current=FF;
+                tt_current=tt;
+            else
+            end
+        end
+        fprintf('扰动后目标函数参数为%1.4f\n',pur);
+        fprintf('当前最优目标函数参数为%1.4f\n',pur_current);
+    end
+    Tk=alpha*Tk;
+    fprintf('完成第一次~时目的函数参数为%1.4f\n',pur_best);
+    result=[result,pur_best];
+end
+[~,alpha_best, beta_best, gamma_best]=gamma_F_t(F0_best,FF_best,tt_best);
+fprintf('退火算法后，最优夹角gamma-best为：%4.4f\n',gamma_best);
+fprintf('同心鼓与水平面夹角gamma-final为：%4.4f\n',gamma_final);
+
+figure;hold on;grid on;
+plot(result,'r--',LineWidth',2);
+xlabel('模拟退火迭代次数n','Fontsize',18,'Fontname','Times');
+ylabel('目标函数指标值','Fontsize',18,'Fontname','Times');
+title('模拟退火搜索全局最优','Fontsize',20,'Fontname','Times');
+end
+
+function F0_dis=disturbF0(F0)
+    F0_dis=F0+0.5*ranadn();
+end
+    
+function FF_dis=disturbFF(FF)
+    for i=1:10
+        FF(i)=FF(i)+0.5*randn();
+    end
+ind1=0;ind2=0;
+while(ind1==ind2)
+    ind1=ceil(rand.*10);
+    ind2=ceil(rand.*10);
+end
+FF_dis=FF;
+FF_dis(ind1)=FF(ind2);
+FF_dis(ind2)=FF(ind1);
+end
+    
+function tt_dis=disturbtt(tt)
+  for i=1:10
+        tt(i)=tt(i)+0.001*randn();
+  end
+    tt(tt>0)=0;
+ind1=0;ind2=0;
+while(ind1==ind2)
+    ind1=ceil(rand.*10);
+    ind2=ceil(rand.*10);
+end
+tt_dis=tt;
+tt_dis(ind1)=tt(ind2);
+tt_dis(ind2)=tt(ind1);
+end 
+    
