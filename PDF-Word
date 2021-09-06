@@ -1,0 +1,6 @@
+from pdf2docx import Converter
+pdf_file = 'G:/zm/2021数模/代码/pdf转word/PDF/2019全国大学生数学建模竞赛优秀论文B136.pdf'
+docx_file = 'G:/zm/2021数模/代码/pdf转word/Word/2019全国大学生数学建模竞赛优秀论文B136.docx'
+cv = Converter(pdf_file)
+cv.convert(docx_file, start = 0, end = None)
+cv.close()
