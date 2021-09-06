@@ -1,0 +1,146 @@
+clc;clear;close;
+t=100; %迭代次数
+d=1; %维数
+max=80; %最大值
+min=0; %最小值
+n=100; %阴阳离子个数
+x=zeros(n,d); %阴离子矩阵
+y=zeros(n,d); %阳离子矩阵
+p1=2*(rand()-0.5);%产生-1 到+1 的随机数
+for i=1:n
+ x(i,:)=rand()*(max-min)+min; %阴离子位置随机化
+ y(i,:)=rand()*(max-min)+min; %阳离子位置随机化
+end 
+xbest=0; %阴离子最优值
+% xbestplace=0; %阴离子最优值的位置
+xworst=inf; %阴离子最差值
+ybest=0; %阳离子最优值
+% ybestplace=0; %阳离子最优值的位置
+yworst=inf; %阳离子最差值
+xfitness=zeros(n,1);
+yfitness=zeros(n,1);
+%xr=ones(n 1); %阴离子适应度排名
+%yr=ones(n 1); %阳离子适应度排名
+xb = zeros(t,1); % 收敛过程 
+yb = zeros(t,1);
+mx=ones(n,1); %阴离子中间参数
+my=ones(n,1); %阳离子中间参数
+for o=1:t
+ for j=1:n
+ xfitness(j,:)=cpm(x(j,:));
+ yfitness(j,:)=cpm(y(j,:));
+ if(xfitness(j,:)>xbest)
+ xbestplace=x(j,:);
+ xbest=xfitness(j,:);
+ end
+ if(yfitness(j,:)>ybest)
+ ybestplace=y(j,:);
+ ybest=yfitness(j,:);
+ end
+ if(xfitness(j,:)<xworst)
+ xworst=xfitness(j,:);
+ end
+ if(yfitness(j,:)<yworst)
+ yworst=yfitness(j,:);
+ end
+ xb(o,:) = xbest;
+ yb(o,:) = ybest;
+ end
+ r1 = 2*rand() - 1;
+ r2 = 2*rand() - 1;
+ 
+ %液态更新过程
+ for p = 1:n
+ x(p,:) = x(p,:)+(ybestplace-x(p,:))/(1+exp(-1/(10*norm(abs(x(p,:)-ybestplace)))))-r1*(xbestplace-x(p,:))/(1+exp(-1/(10*norm(abs(x(p,:)-xbestplace)))));
+ y(p,:) = y(p,:)+(xbestplace-y(p,:))/(1+exp(-1/(10*norm(abs(y(p,:)-xbestplace)))))-r2*(ybestplace-y(p,:))/(1+exp(-1/(10*norm(abs(y(p,:)-ybestplace)))));
+ if (x(p,:)>repmat(max,1,d)) %越界处理
+ x(p,:)=repmat(max,1,d);
+ end
+ if(y(p,:)>repmat(max,1,d))
+ y(p,:)=repmat(max,1,d);
+ end
+ if ((y(p,:)<repmat(min,1,d)))
+ y(p,:)=repmat(min,1,d);
+ end
+ if((x(p,:)<repmat(min,1,d)))
+ x(p,:)=repmat(min,1,d);
+ end
+ end
+ 
+ xr=ones(n,1); %阴离子适应度排名
+ yr=ones(n,1); %阳离子适应度排名
+ for j=2:n %计算阴离子适应度排名
+ for k=1:j-1
+ if xfitness(j,:)>xfitness(k,:)
+ xr(k,:)=xr(k,:)+1;
+ end
+ if xfitness(j,:)<xfitness(k,:)
+ xr(j,:)=xr(j,:)+1; 
+ end
+ end
+ end
+ for j=2:n %计算阳离子适应度排名
+ for k=1:j-1
+ if yfitness(j,:)>yfitness(k,:)
+ yr(k,:)=yr(k,:)+1;
+ end
+ if yfitness(j,:)<yfitness(k,:)
+ yr(j,:)=yr(j,:)+1; 
+ end
+ end
+ end
+ 
+ for j=1:n
+ mx(j,:)=xr(j,:)/n;
+ my(j,:)=yr(j,:)/n;
+ end
+ r=rand();
+ a=1/(10*t)^2;
+ 
+ %固态更新过程
+% a 
+ for j=1:n
+ if my(j,:)<=r/3 ||mx(j,:)<=r/3
+ y(j,:)=2*a*rand(1,d)+xbestplace-a;
+ x(j,:)=2*a*rand(1,d)+ybestplace-a; 
+ end
+ end
+% b
+ for j=1:n
+ if r/3<mx(j,:)<=2*r/3 ||r/3<my(j,:)<=2*r/3
+ x(j,:)=x(j,:)+p1*ybestplace;
+ y(j,:)=y(j,:)+p1*xbestplace;
+ end
+ end
+% c
+ pace = 0.5;
+ b_b = 3/2;
+ u_u = normrnd(0,1);
+ v_v = normrnd(0,1);
+ for j=1:n
+ if my(j,:)>2*r/3 ||mx(j,:)>2*r/3 
+ for j_j = 1:d
+ s_s = u_u/(abs(v_v)^1/b_b);
+ y(j,j_j) = y(j,j_j) + pace*(s_s-0.5);
+ x(j,j_j) = x(j,j_j) + pace*(s_s-0.5);
+ end
+ end
+ end
+% d
+ for p=1:n
+ for p_p = 1:d
+ if (x(p,p_p)>max) %越界处理
+ x(p,p_p)=max;
+ end
+ if(y(p,p_p)>max)
+ y(p,p_p)=max;
+ end
+ if (y(p,p_p)<min)
+ y(p,p_p)=min;
+ end
+ if(x(p,p_p)<min)
+ x(p,p_p)=min;
+ end
+ end
+ end
+end
